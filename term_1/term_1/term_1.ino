@@ -31,8 +31,9 @@ int set_btn_state = 0; // set 버튼 상태
 void switchFn(); // 이거 뭔지 모르는데 일단 필요한건 확실함
 
 const byte segPin[8] = {3, 4, 5, 6, 7, 8, 9, 10}; //사용핀{a,b,c,d,e,f,g,dp} 순서대로임
-const byte digitPin[6] = {A0, A1, A2, A3, A4, A5}; //segment 위치 핀
-const byte interruptPin = 2;//인터럽트핀
+const byte digitPin[6] = {A10, A11, A12, A13, A14, A15}; //segment 위치 핀
+int button_timeMode = 13;//인터럽트핀
+int timeMode_flag = 0; // 인터럽트핀 플래그
 
 boolean state = false;//시간 출력형식 지정
 extern volatile unsigned long timer0_millis; //타이머변수
@@ -45,12 +46,13 @@ int buf_t = 0; // 현재시간 설정 보정용 변수
 int setTime(int time_, int term); // 시, 분, 초 값을 설정하는 함수 (코드 정리용)
 void segPrint(int a, int b, int c); // 세그먼트 출력 함수 (코드 정리용)
 
+int game_num = 0;
+
 void setup() {
 
   Serial.begin(9600); // 시리얼 시작
 
-  pinMode(interruptPin, INPUT_PULLUP); // 12/24시간제 버튼 핀 INPUT_PULLUP으로 설정
-  attachInterrupt(digitalPinToInterrupt(interruptPin), switchFn, FALLING); // 이거 뭔지 몰라
+  pinMode(button_timeMode, INPUT_PULLUP); // 12/24시간제 버튼 핀 INPUT_PULLUP으로 설정
 
   for (int i = 0; i < 10; i++) { // 7-segment 각각 led 핀 output
     pinMode(segPin[i], OUTPUT);
@@ -107,13 +109,13 @@ void loop() {
 
   } else if (set_btn_state == 3) { // 알람 h 설정
 
-    h = setTime(h, 10); // setTime함수로 h 값 설정
+    h = setTime(h, 1); // setTime함수로 h 값 설정
     h = h % 60;
     segPrint(h, m, s); // segPrint함수로 7-세그먼트에 출력
 
   } else if (set_btn_state == 4) { // 알람 m 설정
 
-    m = setTime(m, 10); // setTime함수로 m 값 설정
+    m = setTime(m, 1); // setTime함수로 m 값 설정
     m = m % 60;
     segPrint(h, m, s); // segPrint함수로 7-세그먼트에 출력
 
@@ -137,8 +139,9 @@ void loop() {
     min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
     hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
 
-    segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력
-
+    if(state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
+    else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+    
     up_flag = 0;
     down_flag = 0;
 
@@ -146,15 +149,22 @@ void loop() {
 
   }
 
-  if (state == true) { //12시 or 24시 출력모드
-    hour_ = hour_ % 12;
-  }
+  switchFn(); // 12시 or 24시 출력 변경 함수 호출
 
 }
 
 //12시 or 24시 출력 변경
 void switchFn() {
-  state = !state;
+
+  if(digitalRead(button_timeMode) == 0){
+    if(timeMode_flag == 0){
+      timeMode_flag = 1;
+      state = !state;
+    }else{}
+  }else{
+    timeMode_flag = 0;
+  }
+
 }
 
 //LED 초기화
@@ -175,10 +185,18 @@ void segOutput(int d, int Number, int dp) {
   digitalWrite(digitPin[d], HIGH);
 }
 //알람 울릴 시간인지 체크하는 함수
+int flag_ = 0;
 void checkTheAlarmTime(int h, int m, int s, int hour_r, int min_r, int sec_r) {
   if (h == hour_r && m == min_r && s == sec_r) {
     //analogWrite(piezo, 128);
-    Serial.println("Alarm");
+    if (flag_ == 0) {
+      flag_ = 1;
+      game_num = random(0, 2);
+      Serial.print(game_num);
+    } else {}
+
+  }else{
+    flag_ = 0;
   }
 }
 
