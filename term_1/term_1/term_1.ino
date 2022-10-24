@@ -82,7 +82,10 @@ void loop() {
       else if (set_btn_state == 3) set_btn_state = 4;
       else if (set_btn_state == 4) set_btn_state = 5;
       else if (set_btn_state == 5) set_btn_state = 6;
-      else if (set_btn_state == 6) set_btn_state = 0;
+      else if (set_btn_state == 6){
+        set_btn_state = 0;
+        
+      }
       set_flag = 1;
     } else {}
   } else {
