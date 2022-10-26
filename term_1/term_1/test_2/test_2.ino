@@ -62,62 +62,69 @@ void setup() {
 }
 
 void loop() {
-  // print_Matrix(0);
 
   print_Matrix(0);
-  //
-  //  print_Matrix(2);
-  //
-  //  print_Matrix(3);
 
 }
 
 void print_Matrix(int n) {
 
-  digitalWrite(y_axis[j], HIGH);
-  j++;
-  if (j == 8) j = 0;
-
   switch (n) {
     case 0:
-      for (int i = 0; i < 8; i++) {
-        if (up[i][j] == 1) {
-          digitalWrite(x_axis[i], HIGH);
-        } else {
-          digitalWrite(x_axis[i], LOW);
+      for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < 8; i++) {
+          if (up[i][j] == 1) {
+            digitalWrite(x_axis[i], HIGH);
+          } else {
+            digitalWrite(x_axis[i], LOW);
+          }
         }
+        digitalWrite(y_axis[j], LOW);
+        delayMicroseconds(350);
+        digitalWrite(y_axis[j], HIGH);
       }
-      digitalWrite(y_axis[j], LOW);
       break;
     case 1:
-      for (int i = 0; i < 8; i++) {
-        if (down[i][j] == 1) {
-          digitalWrite(x_axis[i], HIGH);
-        } else {
-          digitalWrite(x_axis[i], LOW);
+      for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < 8; i++) {
+          if (down[i][j] == 1) {
+            digitalWrite(x_axis[i], HIGH);
+          } else {
+            digitalWrite(x_axis[i], LOW);
+          }
         }
+        digitalWrite(y_axis[j], LOW);
+        delayMicroseconds(350);
+        digitalWrite(y_axis[j], HIGH);
       }
-      digitalWrite(y_axis[j], LOW);
       break;
     case 2:
-      for (int i = 0; i < 8; i++) {
-        if (right[i][j] == 1) {
-          digitalWrite(x_axis[i], HIGH);
-        } else {
-          digitalWrite(x_axis[i], LOW);
+      for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < 8; i++) {
+          if (right[i][j] == 1) {
+            digitalWrite(x_axis[i], HIGH);
+          } else {
+            digitalWrite(x_axis[i], LOW);
+          }
         }
+        digitalWrite(y_axis[j], LOW);
+        delayMicroseconds(350);
+        digitalWrite(y_axis[j], HIGH);
       }
-      digitalWrite(y_axis[j], LOW);
       break;
     case 3:
-      for (int i = 0; i < 8; i++) {
-        if (left[i][j] == 1) {
-          digitalWrite(x_axis[i], HIGH);
-        } else {
-          digitalWrite(x_axis[i], LOW);
+      for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < 8; i++) {
+          if (left[i][j] == 1) {
+            digitalWrite(x_axis[i], HIGH);
+          } else {
+            digitalWrite(x_axis[i], LOW);
+          }
         }
+        digitalWrite(y_axis[j], LOW);
+        delayMicroseconds(350);
+        digitalWrite(y_axis[j], HIGH);
       }
-      digitalWrite(y_axis[j], LOW);
       break;
   };
 }
