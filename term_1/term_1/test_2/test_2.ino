@@ -1,144 +1,123 @@
-#include <FrequencyTimer2.h>
 
 //up
-#define up{\
-{0,0,0,1,1,0,0,0},\
-{0,0,1,1,1,1,0,0},\
-{0,1,1,1,1,1,1,0},\
-{1,1,1,1,1,1,1,1},\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0} \
-}
+int up[8][8] = {\
+  {0, 0, 0, 1, 1, 0, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 1, 1, 1, 1, 1, 1, 0}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0} \
+};
 
 //down
-#define down{\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0},\
-{0,0,1,1,1,1,0,0},\
-{1,1,1,1,1,1,1,1},\
-{0,1,1,1,1,1,1,0},\
-{0,0,1,1,1,1,0,0},\
-{0,0,0,1,1,0,0,0} \
-}
+int down[8][8] = {\
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {0, 1, 1, 1, 1, 1, 1, 0}, \
+  {0, 0, 1, 1, 1, 1, 0, 0}, \
+  {0, 0, 0, 1, 1, 0, 0, 0} \
+};
 
 //right
-#define right{\
-{0,0,0,0,1,0,0,0},\
-{0,0,0,0,1,1,0,0},\
-{1,1,1,1,1,1,1,0},\
-{1,1,1,1,1,1,1,1},\
-{1,1,1,1,1,1,1,1},\
-{1,1,1,1,1,1,1,0},\
-{0,0,0,0,1,1,0,0},\
-{0,0,0,0,1,0,0,0} \
-}
+int right[8][8] = {\
+  {0, 0, 0, 0, 1, 0, 0, 0}, \
+  {0, 0, 0, 0, 1, 1, 0, 0}, \
+  {1, 1, 1, 1, 1, 1, 1, 0}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {1, 1, 1, 1, 1, 1, 1, 0}, \
+  {0, 0, 0, 0, 1, 1, 0, 0}, \
+  {0, 0, 0, 0, 1, 0, 0, 0} \
+};
 
 //left
-#define left{\
-{0,0,0,1,0,0,0,0},\
-{0,0,1,1,0,0,0,0},\
-{0,1,1,1,1,1,1,1},\
-{1,1,1,1,1,1,1,1},\
-{1,1,1,1,1,1,1,1},\
-{0,1,1,1,1,1,1,1},\
-{0,0,1,1,0,0,0,0},\
-{0,0,0,1,0,0,0,0} \
+int left[8][8] = {\
+  {0, 0, 0, 1, 0, 0, 0, 0}, \
+  {0, 0, 1, 1, 0, 0, 0, 0}, \
+  {0, 1, 1, 1, 1, 1, 1, 1}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {1, 1, 1, 1, 1, 1, 1, 1}, \
+  {0, 1, 1, 1, 1, 1, 1, 1}, \
+  {0, 0, 1, 1, 0, 0, 0, 0}, \
+  {0, 0, 0, 1, 0, 0, 0, 0} \
+};
+
+int x_axis[] = {26, 27, 28, 29, 30, 31, 32, 33};
+int y_axis[] = {34, 35, 36, 37, 38, 39, 40, 41};
+
+int j = 0;
+
+void setup() {
+  for (int i = 0; i < 8; ++i) {
+    pinMode(x_axis[i], OUTPUT);
+    pinMode(y_axis[i], OUTPUT);
+    digitalWrite(x_axis[i], LOW); //off
+    digitalWrite(y_axis[i], HIGH); //off
+  }
 }
 
-int push_btn = 8; //pin again
-byte col = 0;
-byte leds[8][8];
+void loop() {
+  // print_Matrix(0);
 
-int pins[17]= {-1, 5, 4, 3, 2, 14, 15, 16, 17, 13, 12, 11, 10, 9,8, 7, 6}; 
-// col[xx] of leds = pin yy on led matrixint 
-cols[8] = {pins[13], pins[3], pins[4], pins[10], pins[06],pins[11], pins[15], pins[16]}; 
-// row[xx] of leds = pin yy on led matrixint 
-rows[8] = {pins[9], pins[14], pins[8], pins[12], pins[1],pins[7], pins[2], pins[5]};
+  print_Matrix(3);
+  //
+  //  print_Matrix(2);
+  //
+  //  print_Matrix(3);
 
-const int arrPatterns = 4;
-byte patterns[arrPatterns][8][8] = {
-  up, down, right, left};
-
-int pattern = 0;
-
-void setup(){
-  for(int i = 1; i<=16; i++){
-    pinMode(pin[i], OUTPUT);
-  }
-
-  for(int i=0; i<8; i++){
-    digitalWrite(cols[i], HIGH);
-  }
-
-  for(int i=0; i<8; i++){
-    digitalWrite(rows[i], HIGH);
-  }
-
-  clearLed();
-
-  FrequencyTimer2::setOnOverflow(display);
-
-  pinMode(push_btn, INPUT);
-
-  setPattern(pattern);
 }
 
-void loop(){
-  //pinMode(버튼핀, INPUT_PULLUP);
+void print_Matrix(int n) {
 
-// 플래그 적용
-  //if(digitalRead(버튼핀) == 0){
-    //if(flag == 0){
-      //flag = 1;
-    //  여기에 할 작업 입력
-    //}else{}
-  //}else{
-    //flag = 0;
-  //}
-  
-  int readpush_btn = digital(push_btn);
+  digitalWrite(y_axis[j], HIGH);
+  j++;
+  if (j == 8) j = 0;
 
-  int randnum = rand(5,15);
-  
-  if(readpush_btn == HIGH){
-    while(randnum>0){
-      pattern = rand(0,4);
-      setPattern(pattern);
-      randnum--;
-    }
-  }
-  setPattern(pattern);
+  switch (n) {
+    case 0:
+      for (int i = 0; i < 8; i++) {
+        if (up[i][7 - j] == 1) {
+          digitalWrite(x_axis[i], HIGH);
+        } else {
+          digitalWrite(x_axis[i], LOW);
+        }
+      }
+      digitalWrite(y_axis[j], LOW);
+      break;
+    case 1:
+      for (int i = 0; i < 8; i++) {
+        if (down[i][7 - j] == 1) {
+          digitalWrite(x_axis[i], HIGH);
+        } else {
+          digitalWrite(x_axis[i], LOW);
+        }
+      }
+      digitalWrite(y_axis[j], LOW);
+      break;
+    case 2:
+      for (int i = 0; i < 8; i++) {
+        if (right[i][7 - j] == 1) {
+          digitalWrite(x_axis[i], HIGH);
+        } else {
+          digitalWrite(x_axis[i], LOW);
+        }
+      }
+      digitalWrite(y_axis[j], LOW);
+      break;
+    case 3:
+      for (int i = 0; i < 8; i++) {
+        if (left[i][7 - j] == 1) {
+          digitalWrite(x_axis[i], HIGH);
+        } else {
+          digitalWrite(x_axis[i], LOW);
+        }
+      }
+      digitalWrite(y_axis[j], LOW);
+      break;
+  };
 }
-
-void clearLeds(){
-  for(int i=0; i<8; i++)
-    for(int j=0; j<8; j++)
-      leds[i][j]=0;
-}
-
-void setPattern(int pattern){
-  for(int i=0; i<8; i++)
-    for(int j=0; j<8; j++)
-      leds[i][j] = patterns[pattern][i][j];
-}
-
-void display(){
-  digitalWrite(cols[col], HIGH);
-  col++;
-  if(col==8){
-    col=0;
-  }
-  for(int row=0; row<=7; row++){
-    if(leds[col][7-row]==1){
-      digitalWrite(rows[row], HIGH);
-    }
-    else{
-      digitalWrite(rows[row], LOW);
-    }
-  }
-  digitalWrite(cols[col], LOW);
-}
-  
