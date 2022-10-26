@@ -4,10 +4,11 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 int lcd_key = 0;
 int adc_key_in = 0;
-#define btnRIGHT  0
-#define btnUP     1
-#define btnDOWN   2
-#define btnLEFT   3
+int start_key = 0;
+#define btnRIGHT  3
+#define btnUP     0
+#define btnDOWN   1
+#define btnLEFT   2
 #define btnSELECT 4
 #define btnNONE   5
 int read_LCD_buttons() {
@@ -20,6 +21,9 @@ int read_LCD_buttons() {
   if (adc_key_in < 790)  return btnDOWN;
   return btnNONE;
 }
+
+
+int a[7], b[7], temp;
 
 //a,b,c,d,e,f,g 상태값
 byte segValue[10][7] = {
@@ -54,6 +58,8 @@ int m = 0; // 알람 분
 int s = 0; // 알람 초
 int set_btn_state = 0; // set 버튼 상태
 
+int start = 0;
+
 void switchFn(); // 이거 뭔지 모르는데 일단 필요한건 확실함
 
 const byte segPin[8] = {49, 48, 47, 46, 45, 44, 43, 42}; //사용핀{a,b,c,d,e,f,g,dp} 순서대로임
@@ -72,6 +78,9 @@ int buf_t = 0; // 현재시간 설정 보정용 변수
 int setTime(int time_, int term); // 시, 분, 초 값을 설정하는 함수 (코드 정리용)
 void segPrint(int a, int b, int c); // 세그먼트 출력 함수 (코드 정리용)
 
+int CompareArrow();
+void printArrow(int n);
+
 int game_num = 0;
 int count = 0;
 int randNum = 0;
@@ -81,6 +90,7 @@ void setup() {
   Serial.begin(9600); // 시리얼 시작
 
   lcd.begin(16, 2);
+  lcd.clear();
 
   pinMode(button_timeMode, INPUT_PULLUP); // 12/24시간제 버튼 핀 INPUT_PULLUP으로 설정
 
@@ -107,7 +117,9 @@ void loop() {
 
     digitalWrite(speaker, LOW);
 
-    Serial.println(set_btn_state);
+    lcd.clear();
+
+    start_key = 0;
 
     if (digitalRead(set_btn) == 0) { // set 버튼을 누를 때 마다 set_btn_state가 0, 1, 2, 3, 4, 5, 6순으로 바뀜
       if (set_flag == 0) {
@@ -132,19 +144,11 @@ void loop() {
 
     if (set_btn_state == 0) { // set_btn_state == 0일 때, 현재시간 hour_ 설정
 
-      Serial.print(hour_);
-      Serial.print(min_);
-      Serial.println(sec_);
-
       hour_ = setTime(hour_, 1); // setTime함수로 hour_값 설정
       hour_ = hour_ % 24;
       segPrint(hour_, min_, sec_); // segPrint함수로 7-세그먼트에 출력
 
     } else if (set_btn_state == 1) { // set_btn_state == 1 일때, 현재시간 min_ 설정
-
-      Serial.print(hour_);
-      Serial.print(min_);
-      Serial.println(sec_);
 
       min_ = setTime(min_, 1); // setTime함수로 min_값 설정
       min_ = min_ % 60;
@@ -201,7 +205,7 @@ void loop() {
     switchFn(); // 12시 or 24시 출력 변경 함수 호출
   } else if (game_num == 1) { // 알람게임 1: 버튼 연타 게임
 
-    tone(speaker, 1000, 10);
+    tone(speaker, 1000, 5);
 
     if (digitalRead(game1_btn) == 0) {
       if (game1_btn_flag == 0) {
@@ -248,6 +252,47 @@ void loop() {
     else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
 
   } else if (game_num == 2) {
+    // 여기에 화살표 게임 들어갈거임
+    if (start == 0) {
+      randomSeed(analogRead(0));
+
+      lcd.begin(16, 2);               // 라이브러리 시작
+      lcd.setCursor(0, 0);            // 첫번째 줄 LCD 커서 위치 설정
+      lcd.print("ARROW GAME START");  // 첫번째 줄에 출력
+      lcd.setCursor(0, 1);            // 두번째 줄 LCD 커서 위치 설정
+      lcd.print("YES: Click");  // 첫번째 줄에 출력
+      start = 1;
+    }
+    tone(speaker, 1000, 5);
+
+    start_key = read_LCD_buttons();   // 키패드 값을 읽음
+
+    if (start_key == 4)
+    {
+      lcd.clear();
+      lcd.print("Check");
+      lcd.setCursor(0, 1);            // 두번째 줄 LCD 커서 위치 설정
+      lcd.print("The Dotmatrix!");  // 첫번째 줄에 출력
+
+      storeArrow(); //랜덤 숫자 만들어서 배열에 저장하는 동시에 저장하는 숫자를 화살표로 바꿔서 도트매트릭스에 출력
+
+      lcd.clear();
+      lcd.print("Your turn!");
+
+      InputArrow();
+      game_num = CompareArrow();
+
+      int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
+      int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
+      sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
+      int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
+      min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
+      hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
+
+      if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
+      else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+
+    }
 
   }
 
@@ -292,7 +337,7 @@ void checkTheAlarmTime(int h, int m, int s, int hour_r, int min_r, int sec_r) {
     if (flag_ == 0) {
       flag_ = 1;
       // game_num = random(1, 3);
-      game_num = 1;
+      game_num = random(1, 3);
       Serial.print(game_num);
     } else {}
 
@@ -328,4 +373,96 @@ int setTime(int time_, int term) { // time_을 전달받아 term만큼 변화시
   }
   return time_;
 
+}
+
+void storeArrow()
+{
+  Serial.print("-------------------\n");
+  for (int i = 0; i < 7; i++)
+  {
+    a[i] = random(analogRead(0) % 4);
+    //Serial.print(i, " : a[i]="); // 잘 저장되고 있는지 확인
+
+    printArrow(a[i]); // 화살표 출력
+  }
+  Serial.print("-------------------\n");
+}
+
+void InputArrow()
+{
+  int temp = btnNONE;
+  for (int i = 0; i < 7; i++)
+  {
+    bool Is_escape = false;
+    while (temp == read_LCD_buttons() || read_LCD_buttons() == btnNONE) {
+      if (temp != read_LCD_buttons()) {
+        Is_escape = true;
+      }
+      if (read_LCD_buttons() != btnNONE && Is_escape == true) {
+        break;
+      }
+    }
+    b[i] = read_LCD_buttons();
+    temp = b[i];
+    Serial.print(b[i]); // 잘 저장되고 있는지 확인
+    printArrow(b[i]); // 화살표 출력
+  }
+}
+
+int CompareArrow() // 두 배열 비교하는 함수
+{
+  int i = 0;
+  bool Is_Fail = false;
+  while (i < 7) {
+    if (a[i] != b[i]) Is_Fail = true;
+    i++;
+  }
+
+  if (!Is_Fail)
+  {
+    lcd.clear();
+    lcd.print("SUCCESS!!");
+    Serial.print("SUCCESS!!\n");
+    lcd.setCursor(0, 1);
+    lcd.print("Turn off: Click");
+    while (1) {
+      if (read_LCD_buttons() == 4) break;
+    }
+    return 0;
+  }
+  else {
+    lcd.clear();
+    lcd.print("FAIL!!");
+    Serial.print("FAIL!!\n");
+    lcd.setCursor(0, 1);
+    lcd.print("RESTART: Left");
+  }
+}
+
+void printArrow(int a)
+{
+  delay(100);
+  switch (a)
+  {
+    case 0: {
+        Serial.print("Up\n"); //이걸 이제 시리얼 모니터가 아닌 도트 매트릭스에 출력
+        // 시리얼 프린트 지우고
+        // 도트매트릭스 함수 호출
+        // 이때 도트매트릭스 함수를 따로 만들어서 번호에 해당하는 모양을 함수로 전달
+        // 도트매트릭스 함수 : 받은 정수 case마다 다른 모양을 도트매트릭스에 출력
+        break;
+      }
+    case 1: {
+        Serial.print("Down\n");
+        break;
+      }
+    case 2: {
+        Serial.print("Left\n");
+        break;
+      }
+    case 3: {
+        Serial.print("Right\n");
+        break;
+      }
+  }
 }

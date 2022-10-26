@@ -64,7 +64,7 @@ void setup() {
 void loop() {
   // print_Matrix(0);
 
-  print_Matrix(3);
+  print_Matrix(0);
   //
   //  print_Matrix(2);
   //
@@ -81,7 +81,7 @@ void print_Matrix(int n) {
   switch (n) {
     case 0:
       for (int i = 0; i < 8; i++) {
-        if (up[i][7 - j] == 1) {
+        if (up[i][j] == 1) {
           digitalWrite(x_axis[i], HIGH);
         } else {
           digitalWrite(x_axis[i], LOW);
@@ -91,7 +91,7 @@ void print_Matrix(int n) {
       break;
     case 1:
       for (int i = 0; i < 8; i++) {
-        if (down[i][7 - j] == 1) {
+        if (down[i][j] == 1) {
           digitalWrite(x_axis[i], HIGH);
         } else {
           digitalWrite(x_axis[i], LOW);
@@ -101,7 +101,7 @@ void print_Matrix(int n) {
       break;
     case 2:
       for (int i = 0; i < 8; i++) {
-        if (right[i][7 - j] == 1) {
+        if (right[i][j] == 1) {
           digitalWrite(x_axis[i], HIGH);
         } else {
           digitalWrite(x_axis[i], LOW);
@@ -111,7 +111,7 @@ void print_Matrix(int n) {
       break;
     case 3:
       for (int i = 0; i < 8; i++) {
-        if (left[i][7 - j] == 1) {
+        if (left[i][j] == 1) {
           digitalWrite(x_axis[i], HIGH);
         } else {
           digitalWrite(x_axis[i], LOW);
