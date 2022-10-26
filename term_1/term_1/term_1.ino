@@ -48,6 +48,10 @@ int min_ = 0; // 현재 min 입력 변수
 int sec_ = 0; // 현재 sec 입력 변수
 int buf_t = 0; // 현재시간 설정 보정용 변수
 
+int sec_r = 0;
+int min_r = 0;
+int hour_r = 0;
+
 int game_num = 0;
 int count = 0;
 int randNum = 0;
@@ -130,6 +134,7 @@ void storeArrow();
 void InputArrow();
 void print_Matrix(int n);
 void printArrow(int a);
+void clock_();
 int CompareArrow();
 int setTime(int time_, int term);
 int checkTheAlarmTime(int j, int m, int s, int hour_r, int min_r, int sec_r);
@@ -235,20 +240,7 @@ void loop() {
 
     } else if (set_btn_state == 6) { // set_btn_state == 6 일때, 현재 시간 표시
 
-      readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-      if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-        timer0_millis = 0; // timer0_millis를 0으로 설정
-      }
-
-      int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-      int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-      sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-      int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-      min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-      hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-      if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-      else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+      clock_();
 
       up_flag = 0;
       down_flag = 0;
@@ -294,20 +286,7 @@ void loop() {
       randNum = 0;
     }
 
-    readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-    if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-      timer0_millis = 0; // timer0_millis를 0으로 설정
-    }
-
-    int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-    int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-    sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-    int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-    min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-    hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-    if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-    else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+    clock_();
 
   } else if (game_num == 2) {
     // 여기에 화살표 게임 들어갈거임
@@ -318,7 +297,7 @@ void loop() {
       lcd.print("ARROW GAME START");  // 첫번째 줄에 출력
       lcd.setCursor(0, 1);            // 두번째 줄 LCD 커서 위치 설정
       lcd.print("YES: Click");  // 첫번째 줄에 출력
-      start = 1;
+      game2_start = 1;
     }
     tone(speaker, 1000, 5);
 
@@ -386,8 +365,7 @@ int checkTheAlarmTime(int h, int m, int s, int hour_r, int min_r, int sec_r) {
       // game_num = random(1, 3);
       randomSeed(analogRead(A7));
       int ret = (random(analogRead(A7) % 100)) % 2 + 1;
-      Serial.println(ret);
-      return 2;
+      return ret;
     } else {}
 
   } else {
@@ -427,7 +405,7 @@ int setTime(int time_, int term) { // time_을 전달받아 term만큼 변화시
 
 void storeArrow()
 {
-  Serial.print("-------------------\n");
+  // Serial.print("-------------------\n");
   for (int i = 0; i < 7; i++)
   {
     a[i] = random(analogRead(0) % 4);
@@ -435,23 +413,8 @@ void storeArrow()
 
     printArrow(a[i]); // 화살표 출력
 
-    readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-    if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-      timer0_millis = 0; // timer0_millis를 0으로 설정
-    }
-
-    int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-    int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-    sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-    int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-    min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-    hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-    if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-    else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
-
   }
-  Serial.print("-------------------\n");
+  // Serial.print("-------------------\n");
 }
 
 void InputArrow()
@@ -467,25 +430,13 @@ void InputArrow()
       if (read_LCD_buttons() != btnNONE && Is_escape == true) {
         break;
       }
-      readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-      if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-        timer0_millis = 0; // timer0_millis를 0으로 설정
-      }
-
-      int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-      int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-      sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-      int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-      min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-      hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-      if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-      else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+      clock_();
     }
     b[i] = read_LCD_buttons();
     temp = b[i];
-    Serial.print(b[i]); // 잘 저장되고 있는지 확인
+    // Serial.print(b[i]); // 잘 저장되고 있는지 확인
     printArrow(b[i]); // 화살표 출력
+    clock_();
   }
 }
 
@@ -502,24 +453,10 @@ int CompareArrow() // 두 배열 비교하는 함수
   {
     lcd.clear();
     lcd.print("SUCCESS!!");
-    Serial.print("SUCCESS!!\n");
     lcd.setCursor(0, 1);
     lcd.print("Turn off: Click");
     while (1) {
-      readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-      if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-        timer0_millis = 0; // timer0_millis를 0으로 설정
-      }
-
-      int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-      int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-      sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-      int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-      min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-      hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-      if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-      else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+      clock_();
       if (read_LCD_buttons() == 4) break;
     }
     return 0;
@@ -527,24 +464,10 @@ int CompareArrow() // 두 배열 비교하는 함수
   else {
     lcd.clear();
     lcd.print("FAIL!!");
-    Serial.print("FAIL!!\n");
     lcd.setCursor(0, 1);
     lcd.print("RESTART: Click");
     while (1) {
-      readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
-      if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
-        timer0_millis = 0; // timer0_millis를 0으로 설정
-      }
-
-      int sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
-      int min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
-      sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
-      int hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
-      min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
-      hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
-
-      if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
-      else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
+      clock_();
       if (read_LCD_buttons() == 4) break;
     }
     return 2;
@@ -552,7 +475,7 @@ int CompareArrow() // 두 배열 비교하는 함수
 }
 
 void print_Matrix(int n) {
-
+  clock_();
   switch (n) {
     case 0:
       for (int j = 0; j < 8; j++) {
@@ -615,7 +538,7 @@ void print_Matrix(int n) {
 
 void printArrow(int a)
 {
-  for (int k = 0; k < 150; k++) print_Matrix(a);
+  for (int k = 0; k < 50; k++) print_Matrix(a);
   for (int i = 0; i < 8; ++i) {
     digitalWrite(x_axis[i], LOW); //off
     digitalWrite(y_axis[i], HIGH); //off
@@ -632,4 +555,21 @@ int read_LCD_buttons() {
   if (adc_key_in < 555)  return btnSELECT;
   if (adc_key_in < 790)  return btnDOWN;
   return btnNONE;
+}
+
+void clock_() {
+  readTime = millis() / 1000; // 아두이노에서 시간 불러와서 readTime에 저장
+  if (millis() >= 86400000) { // 만약 그 값이 86400000보다 크다면
+    timer0_millis = 0; // timer0_millis를 0으로 설정
+  }
+
+  sec_r = sec_ + readTime - buf_t; // 입력한 현재시간(sec) + 아두이노로부터 불러온 초 - 현재시간 보정용 변수를 sec_r에 저장
+  min_r = min_ + (sec_r / 60); // 입력한 현재시간(min) + 아두이노로부터 불러온 초를 min_r에 저장
+  sec_r = sec_r % 60; // sec_r을 60으로 나눈 나머지를 sec_r에 저장
+  hour_r = hour_ + (min_r / 60); // 입력한 현재시간(hour) + 아두이노로부터 불러온 초를 hour_r에 저장
+  min_r = min_r % 60; // min_r을 60으로 나눈 나머지를 min_r에 저장
+  hour_r = hour_r % 24; // hour_r을 24로 나눈 나머지를 hour_r에 저장
+
+  if (state == 0) segPrint(hour_r, min_r, sec_r); // segPrint함수로 현재시간 출력 - 24시간제
+  else segPrint(hour_r % 12, min_r, sec_r); // segPrint함수로 현재시간 출력 - 12시간제
 }
