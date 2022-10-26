@@ -48,6 +48,12 @@ int min_ = 0; // 현재 min 입력 변수
 int sec_ = 0; // 현재 sec 입력 변수
 int buf_t = 0; // 현재시간 설정 보정용 변수
 
+int bef_hour = -1;
+int bef_min = -1;
+int bef_sec = -1;
+
+bool first_t = true;
+
 int sec_r = 0;
 int min_r = 0;
 int hour_r = 0;
@@ -180,6 +186,7 @@ void loop() {
     lcd.clear();
 
     start_key = 0;
+    game2_start = 0;
 
     if (digitalRead(set_btn) == 0) { // set 버튼을 누를 때 마다 set_btn_state가 0, 1, 2, 3, 4, 5, 6순으로 바뀜
       if (set_flag == 0) {
@@ -187,6 +194,19 @@ void loop() {
         else if (set_btn_state == 1) set_btn_state = 2;
         else if (set_btn_state == 2) { // set_btn_state가 2에서 3으로 변할 때, 현재시간 보정을 위한 변수 buf_t에 millis() / 1000 값을 대입한다.
           set_btn_state = 3;
+          if (first_t) {
+            first_t = false;
+          }
+          else {
+            if (bef_hour == hour_ && bef_min == min_ && bef_sec == sec_) {
+              hour_ = hour_r;
+              min_ = min_r;
+              sec_ = sec_r;
+            }
+          }
+          bef_hour = hour_;
+          bef_min = min_;
+          bef_sec = sec_;
           buf_t = millis() / 1000;
         }
         else if (set_btn_state == 3) set_btn_state = 4;
@@ -194,7 +214,6 @@ void loop() {
         else if (set_btn_state == 5) set_btn_state = 6;
         else if (set_btn_state == 6) {
           set_btn_state = 0;
-
         }
         set_flag = 1;
       } else {}
@@ -216,7 +235,7 @@ void loop() {
 
     } else if (set_btn_state == 2) { // sec_ 설정
 
-      sec_ = setTime(sec_, 10); // setTime함수로 sec_값 설정
+      sec_ = setTime(sec_, 1); // setTime함수로 sec_값 설정
       sec_ = sec_ % 60;
       segPrint(hour_, min_, sec_); // segPrint함수로 7-세그먼트에 출력
 
@@ -234,7 +253,7 @@ void loop() {
 
     } else if (set_btn_state == 5) { // 알람 s 설정
 
-      s = setTime(s, 10); // setTime함수로 s 값 설정
+      s = setTime(s, 1); // setTime함수로 s 값 설정
       s = s % 60;
       segPrint(h, m, s); // segPrint함수로 7-세그먼트에 출력
 
@@ -263,8 +282,7 @@ void loop() {
       game1_btn_flag = 0;
     }
 
-
-    randomSeed(analogRead(A7));
+    randomSeed(sec_r);
     if (randNum == 0) randNum = random(analogRead(A7) % 20) + 30;
 
     lcd.setCursor(0, 0);
@@ -363,7 +381,7 @@ int checkTheAlarmTime(int h, int m, int s, int hour_r, int min_r, int sec_r) {
     if (flag_ == 0) {
       flag_ = 1;
       // game_num = random(1, 3);
-      randomSeed(analogRead(A7));
+      randomSeed(sec_r);
       int ret = (random(analogRead(A7) % 100)) % 2 + 1;
       return ret;
     } else {}
@@ -430,6 +448,7 @@ void InputArrow()
       if (read_LCD_buttons() != btnNONE && Is_escape == true) {
         break;
       }
+      tone(speaker, 1000, 1);
       clock_();
     }
     b[i] = read_LCD_buttons();
@@ -468,6 +487,7 @@ int CompareArrow() // 두 배열 비교하는 함수
     lcd.print("RESTART: Click");
     while (1) {
       clock_();
+      tone(speaker, 1000, 2);
       if (read_LCD_buttons() == 4) break;
     }
     return 2;
@@ -480,6 +500,7 @@ void print_Matrix(int n) {
     case 0:
       for (int j = 0; j < 8; j++) {
         for (int i = 0; i < 8; i++) {
+          tone(speaker, 1000, 1);
           if (up[i][j] == 1) {
             digitalWrite(x_axis[i], HIGH);
           } else {
@@ -494,6 +515,7 @@ void print_Matrix(int n) {
     case 1:
       for (int j = 0; j < 8; j++) {
         for (int i = 0; i < 8; i++) {
+          tone(speaker, 1000, 1);
           if (down[i][j] == 1) {
             digitalWrite(x_axis[i], HIGH);
           } else {
@@ -508,6 +530,7 @@ void print_Matrix(int n) {
     case 2:
       for (int j = 0; j < 8; j++) {
         for (int i = 0; i < 8; i++) {
+          tone(speaker, 1000, 1);
           if (left[i][j] == 1) {
             digitalWrite(x_axis[i], HIGH);
           } else {
@@ -522,6 +545,7 @@ void print_Matrix(int n) {
     case 3:
       for (int j = 0; j < 8; j++) {
         for (int i = 0; i < 8; i++) {
+          tone(speaker, 1000, 1);
           if (right[i][j] == 1) {
             digitalWrite(x_axis[i], HIGH);
           } else {
